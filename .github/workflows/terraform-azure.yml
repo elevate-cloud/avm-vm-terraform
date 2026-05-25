@@ -30,8 +30,20 @@ jobs:
             printf '%s' "${{ secrets.TERRAFORM_VARS }}" > terraform.tfvars
           fi
 
-      - name: Terraform init
-        run: terraform init -input=false
+      - name: Create backend storage container (optional)
+        if: ${{ secrets.TF_BACKEND_CREATE == 'true' }}
+        run: |
+          az group create --name "${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" --location "${{ secrets.AZURE_LOCATION }}"
+          az storage account create --name "${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" --resource-group "${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" --sku Standard_LRS
+          az storage container create --name "${{ secrets.TF_BACKEND_CONTAINER }}" --account-name "${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}"
+
+      - name: Terraform init (with azurerm backend)
+        run: |
+          BACKEND_ARGS="-backend-config=resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }} -backend-config=storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }} -backend-config=container_name=${{ secrets.TF_BACKEND_CONTAINER }} -backend-config=key=${{ secrets.TF_BACKEND_KEY }}"
+          if [ -n "${{ secrets.TF_BACKEND_STORAGE_KEY }}" ]; then
+            BACKEND_ARGS="$BACKEND_ARGS -backend-config=access_key=${{ secrets.TF_BACKEND_STORAGE_KEY }}"
+          fi
+          terraform init -input=false $BACKEND_ARGS
 
       - name: Terraform plan
         run: terraform plan -out=tfplan -input=false
