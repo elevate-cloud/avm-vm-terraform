@@ -84,3 +84,6 @@ Triggering
 - Push to main or use Actions -> workflow_dispatch to run the workflow.
 
 If you'd like, I can also add a GitHub Actions job to validate terraform fmt and terraform validate before planning. Say "yes" to add it.
+
+IMPORTANT: backend moved to terraform.tf
+terraform.tf now contains an azurerm backend block with placeholder values. Replace the REPLACE_WITH_* placeholders with your resource group, storage account and container names, or manage backend configuration via CI secrets. Do NOT commit storage account access keys or other secrets into source control.
