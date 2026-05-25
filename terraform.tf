@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
     resource_group_name  = "rg-avm-tfstate"
-    storage_account_name = "avmstateacct001"
+    storage_account_name = "strtfstate0981237645"
     container_name       = "tfstate"
     key                  = "avm-terraform.tfstate"
     # access_key         = "<optional-access-key>" # do NOT commit secrets to VCS
