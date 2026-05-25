@@ -1,14 +1,18 @@
-# Terraform
-.terraform/
+# Terraform state
 *.tfstate
-*.tfstate.backup
-*.tfvars
-*.tfplan
-terraform.tfstate.d/
+*.tfstate.*
+# Crash logs
+crash.log
+# Exclude override files
 override.tf
 override.tf.json
-*_override.tf
-*_override.tf.json
+# Local tfvars with secrets
+*.tfvars
+terraform.tfvars
+# Terraform directories
+.terraform/
 
-# Local environment files
-*.log
+# Editor files
+*.swp
+*~
+.DS_Store
