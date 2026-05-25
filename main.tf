@@ -19,27 +19,82 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = var.subnet_prefixes
 }
 
-module "avm-res-compute-virtualmachine" {
+resource "azurerm_network_security_group" "nsg" {
+  name                = "nsg-avm"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  security_rule {
+    name                       = "Allow-SSH"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_log_analytics_workspace" "law" {
+  name                = "law-avm"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+
+
+module "avm_vm" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "0.20.0"
+  for_each = var.vms
 
   location            = var.location
-  name                = var.name
+  name                = each.value.name
   resource_group_name = azurerm_resource_group.rg.name
-  zone                = var.zone
-  sku_size            = var.sku_size
+  zone                = lookup(each.value, "zone", var.zone)
+  sku_size            = lookup(each.value, "sku_size", var.sku_size)
 
-  encryption_at_host_enabled = false
+  os_type = lookup(each.value, "os_type", "Linux")
+
+  account_credentials = {
+    admin_credentials = {
+      username                           = lookup(each.value, "admin_username", "azureuser")
+      ssh_keys                           = []
+      generate_admin_password_or_ssh_key = true
+    }
+    password_authentication_disabled = lookup(each.value, "password_authentication_disabled", true)
+  }
+
+  # Ensure Encryption at Host is disabled for this subscription
+  encryption_at_host_enabled = var.encryption_at_host_enabled
+
+  # Image selection per-VM
+  source_image_reference = lookup(each.value, "source_image_reference", null)
 
   network_interfaces = {
     nic1 = {
-      name = "avmvm-nic1"
+      name = "${each.value.name}-nic1"
       ip_configurations = {
         ipconfig1 = {
           name                          = "ipconfig1"
           private_ip_subnet_resource_id = azurerm_subnet.subnet.id
-          create_public_ip_address      = true
-          public_ip_address_name        = "avmvm01-pip"
+          create_public_ip_address      = false
+        }
+      }
+      network_security_groups = {
+        nsg1 = {
+          network_security_group_resource_id = azurerm_network_security_group.nsg.id
+        }
+      }
+      diagnostic_settings = {
+        ds1 = {
+          name                  = "${each.value.name}-diag"
+          workspace_resource_id = azurerm_log_analytics_workspace.law.id
+          metric_categories     = ["AllMetrics"]
         }
       }
     }
