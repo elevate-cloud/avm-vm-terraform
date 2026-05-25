@@ -6,17 +6,17 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-avm-vm"
+  name                = var.vnet_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  address_space       = ["10.0.0.0/16"]
+  address_space       = var.vnet_address_space
 }
 
 resource "azurerm_subnet" "subnet" {
-  name                 = "snet-avm-vm"
+  name                 = var.subnet_name
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = var.subnet_prefixes
 }
 
 module "avm-res-compute-virtualmachine" {
@@ -27,7 +27,7 @@ module "avm-res-compute-virtualmachine" {
   name                = var.name
   resource_group_name = azurerm_resource_group.rg.name
   zone                = var.zone
-  sku_size            = "Standard_D2s_v3"
+  sku_size            = var.sku_size
 
   encryption_at_host_enabled = false
 
