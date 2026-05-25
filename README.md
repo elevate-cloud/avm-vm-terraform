@@ -85,5 +85,11 @@ Triggering
 
 If you'd like, I can also add a GitHub Actions job to validate terraform fmt and terraform validate before planning. Say "yes" to add it.
 
-IMPORTANT: backend moved to terraform.tf
-terraform.tf now contains an azurerm backend block with placeholder values. Replace the REPLACE_WITH_* placeholders with your resource group, storage account and container names, or manage backend configuration via CI secrets. Do NOT commit storage account access keys or other secrets into source control.
+IMPORTANT: backend configured in terraform.tf
+Terraform backend placeholders have been set to:
+  resource_group_name = rg-avm-tfstate
+  storage_account_name = avmstateacct001
+  container_name = tfstate
+  key = avm-terraform.tfstate
+
+Make sure to create corresponding GitHub Secrets: AZURE_CREDENTIALS, TF_BACKEND_RESOURCE_GROUP, TF_BACKEND_STORAGE_ACCOUNT, TF_BACKEND_CONTAINER, TF_BACKEND_KEY, TF_BACKEND_CREATE (set to 'true' if you want the workflow to create resources).

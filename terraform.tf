@@ -1,10 +1,10 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "REPLACE_WITH_RG"
-    storage_account_name = "REPLACE_WITH_STORAGE_ACCOUNT"
-    container_name       = "REPLACE_WITH_CONTAINER"
+    resource_group_name  = "rg-avm-tfstate"
+    storage_account_name = "avmstateacct001"
+    container_name       = "tfstate"
     key                  = "avm-terraform.tfstate"
-    # access_key         = "REPLACE_WITH_STORAGE_KEY" # optional, not recommended in VCS
+    # access_key         = "<optional-access-key>" # do NOT commit secrets to VCS
   }
 
   required_providers {
