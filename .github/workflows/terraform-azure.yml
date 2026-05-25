@@ -56,11 +56,14 @@ jobs:
           fi
 
       - name: Create backend storage container (optional)
-        if: ${{ secrets.TF_BACKEND_CREATE == 'true' }}
         run: |
-          az group create --name "${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" --location "${{ secrets.AZURE_LOCATION }}"
-          az storage account create --name "${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" --resource-group "${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" --sku Standard_LRS
-          az storage container create --name "${{ secrets.TF_BACKEND_CONTAINER }}" --account-name "${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}"
+          if [ "${{ secrets.TF_BACKEND_CREATE }}" != "true" ]; then
+            echo "TF_BACKEND_CREATE != true; skipping backend creation"
+          else
+            az group create --name "${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" --location "${{ secrets.AZURE_LOCATION }}"
+            az storage account create --name "${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" --resource-group "${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" --sku Standard_LRS
+            az storage container create --name "${{ secrets.TF_BACKEND_CONTAINER }}" --account-name "${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}"
+          fi
 
       - name: Terraform init (with azurerm backend)
         run: |
