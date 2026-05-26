@@ -12,6 +12,7 @@ nsg_name            = "nsg-avm"
 encryption_at_host_enabled = false
 password_authentication_disabled = true
 log_analytics_workspace_id = ""
+law_name = "law-avm"
 
 vms = {
   linux = {

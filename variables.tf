@@ -72,3 +72,7 @@ variable "log_analytics_workspace_id" {
   type        = string
   description = "The resource ID of an existing Log Analytics workspace to send diagnostic logs to. Leave empty to disable."
 }
+ variable "law_name" {
+  type        = string
+  description = "The name of an existing Log Analytics workspace to send diagnostic logs to. Leave empty to disable."
+ }
