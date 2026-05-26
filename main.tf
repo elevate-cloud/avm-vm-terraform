@@ -19,8 +19,26 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = var.subnet_prefixes
 }
 
-resource "azurerm_network_security_group" "nsg" {
-  name                = var.nsg_name
+resource "azurerm_network_security_group" "nsg_windows" {
+  name                = "${var.nsg_name}-windows"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  security_rule {
+    name                       = "Allow-RDP"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_security_group" "nsg_linux" {
+  name                = "${var.nsg_name}-linux"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -87,7 +105,7 @@ module "avm_vm" {
       }
       network_security_groups = {
         nsg1 = {
-          network_security_group_resource_id = azurerm_network_security_group.nsg.id
+          network_security_group_resource_id = lookup(each.value, "os_type", "Linux") == "Windows" ? azurerm_network_security_group.nsg_windows.id : azurerm_network_security_group.nsg_linux.id
         }
       }
       diagnostic_settings = {
@@ -98,6 +116,23 @@ module "avm_vm" {
         }
       }
     }
+    nic2 = lookup(each.value, "os_type", "Linux") == "Linux" ? {
+      name = "${each.value.name}-nic2"
+      ip_configurations = {
+        ipconfig2 = {
+          name                          = "ipconfig2"
+          private_ip_subnet_resource_id = azurerm_subnet.subnet.id
+          create_public_ip_address      = false
+        }
+      }
+      diagnostic_settings = {
+        ds2 = {
+          name                  = "${each.value.name}-diag-nic2"
+          workspace_resource_id = azurerm_log_analytics_workspace.law.id
+          metric_categories     = ["AllMetrics"]
+        }
+      }
+    } : null
   }
 }
 
