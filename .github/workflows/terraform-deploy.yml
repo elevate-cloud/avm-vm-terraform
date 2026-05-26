@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
 
 env:
- TERRAFORM_VERSION: "~> 1.10"
+  TERRAFORM_VERSION: "~> 1.10"
   WORKING_DIR: ./
 
 jobs:
